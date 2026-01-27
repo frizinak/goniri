@@ -5,6 +5,8 @@ import (
 	"errors"
 	"io"
 	"net"
+
+	"github.com/frizinak/goniri/niri/types"
 )
 
 type reply struct {
@@ -62,13 +64,13 @@ func (ipc *IPC) Do(req Request) error {
 	return nil
 }
 
-func (ipc *IPC) Events(cb func(Event) error) error {
+func (ipc *IPC) Events(cb func(types.Event) error) error {
 	if err := ipc.Do(newEventStreamRequest()); err != nil {
 		return err
 	}
 
 	for {
-		var ev Event
+		var ev types.Event
 		if err := ipc.r.Decode(&ev); err != nil {
 			return err
 		}
@@ -76,8 +78,6 @@ func (ipc *IPC) Events(cb func(Event) error) error {
 			return err
 		}
 	}
-
-	return nil
 }
 
 func (ipc *IPC) Close() error { return ipc.conn.Close() }
