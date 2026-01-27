@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/frizinak/goniri/niri"
+	"github.com/frizinak/goniri/niri/types"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 	}
 	fmt.Println(req.Response())
 
-	err = ipc.Events(func(e niri.Event) error {
+	err = ipc.Events(func(e types.Event) error {
 		fmt.Printf("ev %s %+v\n", time.Now().Format("15:04:05"), e)
 		return nil
 	})
