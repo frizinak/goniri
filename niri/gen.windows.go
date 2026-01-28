@@ -7,7 +7,7 @@ type windowsRequest struct {
 }
 
 func NewWindowsRequest() windowsRequest {
-	return windowsRequest{r: &windowsResponse{}}
+	return windowsRequest{r: new(windowsResponse)}
 }
 
 func (r windowsRequest) MarshalJSON() ([]byte, error) {

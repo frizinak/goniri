@@ -7,7 +7,7 @@ type layersRequest struct {
 }
 
 func NewLayersRequest() layersRequest {
-	return layersRequest{r: &layersResponse{}}
+	return layersRequest{r: new(layersResponse)}
 }
 
 func (r layersRequest) MarshalJSON() ([]byte, error) {

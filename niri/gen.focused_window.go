@@ -7,7 +7,7 @@ type focusedWindowRequest struct {
 }
 
 func NewFocusedWindowRequest() focusedWindowRequest {
-	return focusedWindowRequest{r: &focusedWindowResponse{}}
+	return focusedWindowRequest{r: new(focusedWindowResponse)}
 }
 
 func (r focusedWindowRequest) MarshalJSON() ([]byte, error) {

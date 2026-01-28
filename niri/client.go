@@ -3,6 +3,7 @@ package niri
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 
@@ -63,11 +64,11 @@ func (ipc *ipc) Do(req Request) error {
 	var r reply
 	r.Ok = req.response()
 	if err := ipc.r.Decode(&r); err != nil {
-		return err
+		return fmt.Errorf("niri response json error: %w", err)
 	}
 
 	if r.Err != "" {
-		return errors.New(r.Err)
+		return fmt.Errorf("niri replied with error: %w", errors.New(r.Err))
 	}
 
 	return nil

@@ -7,7 +7,7 @@ type workspacesRequest struct {
 }
 
 func NewWorkspacesRequest() workspacesRequest {
-	return workspacesRequest{r: &workspacesResponse{}}
+	return workspacesRequest{r: new(workspacesResponse)}
 }
 
 func (r workspacesRequest) MarshalJSON() ([]byte, error) {

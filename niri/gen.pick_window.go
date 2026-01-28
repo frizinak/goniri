@@ -7,7 +7,7 @@ type pickWindowRequest struct {
 }
 
 func NewPickWindowRequest() pickWindowRequest {
-	return pickWindowRequest{r: &pickWindowResponse{}}
+	return pickWindowRequest{r: new(pickWindowResponse)}
 }
 
 func (r pickWindowRequest) MarshalJSON() ([]byte, error) {

@@ -1,6 +1,9 @@
 package types
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type CastKind string
 
@@ -99,17 +102,39 @@ const (
 	LayerSurfaceKeyboardInteractivityOnDemand  LayerSurfaceKeyboardInteractivity = "OnDemand"
 )
 
-type LayoutSwitchTargetKind string
-
-const (
-	LayoutSwitchTargetNext  LayoutSwitchTargetKind = "Next"
-	LayoutSwitchTargetPrev  LayoutSwitchTargetKind = "Prev"
-	LayoutSwitchTargetIndex LayoutSwitchTargetKind = "Index"
-)
-
 type LayoutSwitchTarget struct {
 	Kind  LayoutSwitchTargetKind
 	Index *uint8
+}
+
+func NewLayoutSwitchTargetNext() LayoutSwitchTarget {
+	return LayoutSwitchTarget{Kind: LayoutSwitchTargetNext}
+}
+
+func NewLayoutSwitchTargetPrev() LayoutSwitchTarget {
+	return LayoutSwitchTarget{Kind: LayoutSwitchTargetPrev}
+}
+
+func NewLayoutSwitchTarget(index uint8) LayoutSwitchTarget {
+	return LayoutSwitchTarget{Kind: LayoutSwitchTargetIndex, Index: &index}
+}
+
+func (t LayoutSwitchTarget) MarshalJSON() ([]byte, error) {
+	switch t.Kind {
+	case LayoutSwitchTargetNext, LayoutSwitchTargetPrev:
+		return json.Marshal(
+			map[LayoutSwitchTargetKind]struct{}{t.Kind: {}},
+		)
+	case LayoutSwitchTargetIndex:
+		return json.Marshal(
+			map[LayoutSwitchTargetKind]*uint8{t.Kind: t.Index},
+		)
+	}
+
+	return nil, fmt.Errorf(
+		"invalid LayoutSwitchTarget kind: '%s'",
+		t.Kind,
+	)
 }
 
 func (t *LayoutSwitchTarget) UnmarshalJSON(data []byte) error {
@@ -172,6 +197,26 @@ const (
 type PositionChange struct {
 	Kind  PositionChangeKind
 	Value float64
+}
+
+func NewPositionSetFixed(value float64) PositionChange {
+	return PositionChange{Kind: PositionChangeSetFixed, Value: value}
+}
+
+func NewPositionSetProportion(value float64) PositionChange {
+	return PositionChange{Kind: PositionChangeSetProportion, Value: value}
+}
+
+func NewPositionAdjustFixed(value float64) PositionChange {
+	return PositionChange{Kind: PositionChangeAdjustFixed, Value: value}
+}
+
+func NewPositionAdjustProportion(value float64) PositionChange {
+	return PositionChange{Kind: PositionChangeAdjustProportion, Value: value}
+}
+
+func (p PositionChange) MarshalJSON() ([]byte, error) {
+	return json.Marshal(map[PositionChangeKind]float64{p.Kind: p.Value})
 }
 
 func (p *PositionChange) UnmarshalJSON(data []byte) error {
@@ -251,6 +296,40 @@ type SizeChange struct {
 	Proportion float64
 }
 
+func NewSizeSetFixed(value int32) SizeChange {
+	return SizeChange{Kind: SizeChangeSetFixed, Fixed: value}
+}
+
+func NewSizeSetProportion(value float64) SizeChange {
+	return SizeChange{Kind: SizeChangeSetProportion, Proportion: value}
+}
+
+func NewSizeAdjustFixed(value int32) SizeChange {
+	return SizeChange{Kind: SizeChangeAdjustFixed, Fixed: value}
+}
+
+func NewSizeAdjustProportion(value float64) SizeChange {
+	return SizeChange{Kind: SizeChangeAdjustProportion, Proportion: value}
+}
+
+func (s SizeChange) MarshalJSON() ([]byte, error) {
+	switch s.Kind {
+	case SizeChangeAdjustFixed, SizeChangeSetFixed:
+		return json.Marshal(
+			map[SizeChangeKind]int32{s.Kind: s.Fixed},
+		)
+	case SizeChangeAdjustProportion, SizeChangeSetProportion:
+		return json.Marshal(
+			map[SizeChangeKind]float64{s.Kind: s.Proportion},
+		)
+	}
+
+	return nil, fmt.Errorf(
+		"invalid SizeChange kind: '%s'",
+		s.Kind,
+	)
+}
+
 func (s *SizeChange) UnmarshalJSON(data []byte) error {
 	var o map[string]json.RawMessage
 	if err := json.Unmarshal(data, &o); err != nil {
@@ -297,33 +376,67 @@ const (
 	VSyncPolarityNVSync VSyncPolarity = "NVSync"
 )
 
-type WorkspaceReferenceArg struct {
-	Kind  WorkspaceReferenceArgKind
+type WorkspaceRef struct {
+	Kind  WorkspaceRefKind
 	ID    uint64
 	Index uint8
 	Name  string
 }
 
-func (w *WorkspaceReferenceArg) UnmarshalJSON(data []byte) error {
+func NewWorkspaceRefID(id uint64) WorkspaceRef {
+	return WorkspaceRef{Kind: WorkspaceRefID, ID: id}
+}
+
+func NewWorkspaceRefIndex(index uint8) WorkspaceRef {
+	return WorkspaceRef{Kind: WorkspaceRefIndex, Index: index}
+}
+
+func NewWorkspaceRefName(name string) WorkspaceRef {
+	return WorkspaceRef{Kind: WorkspaceRefName, Name: name}
+}
+
+func (w WorkspaceRef) MarshalJSON() ([]byte, error) {
+	switch w.Kind {
+	case WorkspaceRefID:
+		return json.Marshal(
+			map[WorkspaceRefKind]uint64{w.Kind: w.ID},
+		)
+	case WorkspaceRefIndex:
+		return json.Marshal(
+			map[WorkspaceRefKind]uint8{w.Kind: w.Index},
+		)
+	case WorkspaceRefName:
+		return json.Marshal(
+			map[WorkspaceRefKind]string{w.Kind: w.Name},
+		)
+	}
+
+	return nil, fmt.Errorf(
+		"invalid WorkspaceRef kind: '%s'",
+		w.Kind,
+	)
+}
+
+func (w *WorkspaceRef) UnmarshalJSON(data []byte) error {
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
 
 	for k, v := range raw {
-		w.Kind = WorkspaceReferenceArgKind(k)
+		w.Kind = WorkspaceRefKind(k)
 		switch w.Kind {
-		case WorkspaceReferenceArgID:
+		case WorkspaceRefID:
 			var r uint64
 			err := json.Unmarshal(v, &r)
 			w.ID = r
 			return err
-		case WorkspaceReferenceArgIndex:
+		case WorkspaceRefIndex:
 			var r uint8
 			err := json.Unmarshal(v, &r)
 			w.Index = r
 			return err
-		case WorkspaceReferenceArgName:
+		case WorkspaceRefName:
 			var r string
 			err := json.Unmarshal(v, &r)
 			w.Name = r

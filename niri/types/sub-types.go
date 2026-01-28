@@ -13,6 +13,14 @@ const (
 	CastTargetWindow  CastTargetKind = "Window"
 )
 
+type LayoutSwitchTargetKind string
+
+const (
+	LayoutSwitchTargetNext  LayoutSwitchTargetKind = "Next"
+	LayoutSwitchTargetPrev  LayoutSwitchTargetKind = "Prev"
+	LayoutSwitchTargetIndex LayoutSwitchTargetKind = "Index"
+)
+
 type ModeToSetKind string
 
 const (
@@ -52,12 +60,12 @@ const (
 	SizeChangeAdjustProportion SizeChangeKind = "AdjustProportion"
 )
 
-type WorkspaceReferenceArgKind string
+type WorkspaceRefKind string
 
 const (
-	WorkspaceReferenceArgID    WorkspaceReferenceArgKind = "Id"
-	WorkspaceReferenceArgIndex WorkspaceReferenceArgKind = "Index"
-	WorkspaceReferenceArgName  WorkspaceReferenceArgKind = "Name"
+	WorkspaceRefID    WorkspaceRefKind = "Id"
+	WorkspaceRefIndex WorkspaceRefKind = "Index"
+	WorkspaceRefName  WorkspaceRefKind = "Name"
 )
 
 type Position struct {

@@ -7,7 +7,7 @@ type keyboardLayoutsRequest struct {
 }
 
 func NewKeyboardLayoutsRequest() keyboardLayoutsRequest {
-	return keyboardLayoutsRequest{r: &keyboardLayoutsResponse{}}
+	return keyboardLayoutsRequest{r: new(keyboardLayoutsResponse)}
 }
 
 func (r keyboardLayoutsRequest) MarshalJSON() ([]byte, error) {

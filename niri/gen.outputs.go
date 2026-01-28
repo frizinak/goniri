@@ -7,7 +7,7 @@ type outputsRequest struct {
 }
 
 func NewOutputsRequest() outputsRequest {
-	return outputsRequest{r: &outputsResponse{}}
+	return outputsRequest{r: new(outputsResponse)}
 }
 
 func (r outputsRequest) MarshalJSON() ([]byte, error) {

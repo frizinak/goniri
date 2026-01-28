@@ -7,7 +7,7 @@ type pickColorRequest struct {
 }
 
 func NewPickColorRequest() pickColorRequest {
-	return pickColorRequest{r: &pickColorResponse{}}
+	return pickColorRequest{r: new(pickColorResponse)}
 }
 
 func (r pickColorRequest) MarshalJSON() ([]byte, error) {

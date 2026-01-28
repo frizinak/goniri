@@ -7,7 +7,7 @@ type overviewStateRequest struct {
 }
 
 func NewOverviewStateRequest() overviewStateRequest {
-	return overviewStateRequest{r: &overviewStateResponse{}}
+	return overviewStateRequest{r: new(overviewStateResponse)}
 }
 
 func (r overviewStateRequest) MarshalJSON() ([]byte, error) {

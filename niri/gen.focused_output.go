@@ -7,7 +7,7 @@ type focusedOutputRequest struct {
 }
 
 func NewFocusedOutputRequest() focusedOutputRequest {
-	return focusedOutputRequest{r: &focusedOutputResponse{}}
+	return focusedOutputRequest{r: new(focusedOutputResponse)}
 }
 
 func (r focusedOutputRequest) MarshalJSON() ([]byte, error) {

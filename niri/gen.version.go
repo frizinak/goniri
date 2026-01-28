@@ -5,7 +5,7 @@ type versionRequest struct {
 }
 
 func NewVersionRequest() versionRequest {
-	return versionRequest{r: &versionResponse{}}
+	return versionRequest{r: new(versionResponse)}
 }
 
 func (r versionRequest) MarshalJSON() ([]byte, error) {

@@ -41,7 +41,7 @@ type {{ .N }}Request struct {
 }
 
 func New{{ .U }}Request() {{ .N }}Request {
-	return {{ .N }}Request{r: &{{ .N }}Response{}}
+	return {{ .N }}Request{r: new({{ .N }}Response)}
 }
 
 func (r {{ .N }}Request) MarshalJSON() ([]byte, error) {
