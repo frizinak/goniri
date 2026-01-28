@@ -21,7 +21,16 @@ type Request interface {
 	response() Response
 }
 
-type IPC struct {
+type EventHandler func(types.Event) error
+
+type Client interface {
+	Connect() error
+	Do(Request) error
+	Events(EventHandler) error
+	io.Closer
+}
+
+type ipc struct {
 	socket string
 
 	conn io.Closer
@@ -29,11 +38,11 @@ type IPC struct {
 	r    *json.Decoder
 }
 
-func New(socket string) *IPC {
-	return &IPC{socket: socket}
+func New(socket string) Client {
+	return &ipc{socket: socket}
 }
 
-func (ipc *IPC) Init() error {
+func (ipc *ipc) Connect() error {
 	conn, err := net.Dial("unix", ipc.socket)
 	if err != nil {
 		return err
@@ -46,7 +55,7 @@ func (ipc *IPC) Init() error {
 	return nil
 }
 
-func (ipc *IPC) Do(req Request) error {
+func (ipc *ipc) Do(req Request) error {
 	if err := ipc.w.Encode(req); err != nil {
 		return err
 	}
@@ -64,7 +73,7 @@ func (ipc *IPC) Do(req Request) error {
 	return nil
 }
 
-func (ipc *IPC) Events(cb func(types.Event) error) error {
+func (ipc *ipc) Events(cb EventHandler) error {
 	if err := ipc.Do(newEventStreamRequest()); err != nil {
 		return err
 	}
@@ -80,4 +89,4 @@ func (ipc *IPC) Events(cb func(types.Event) error) error {
 	}
 }
 
-func (ipc *IPC) Close() error { return ipc.conn.Close() }
+func (ipc *ipc) Close() error { return ipc.conn.Close() }
