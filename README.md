@@ -2,7 +2,7 @@
 
 Features:
  - [X] map all IPC calls
- - [ ] convenient high-level API
+ - [ ] convenient high-level API (WIP)
  - [ ] example implementations
 
 ## Example
