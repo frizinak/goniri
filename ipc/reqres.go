@@ -107,7 +107,7 @@ type overviewStateResponse struct {
 
 //go:generate ./generate/bin/request casts Casts []types.Cast
 
-// Documented, but doens't work.
+// Documented, but doesn't work.
 // TODO
 type castsResponse struct {
 	Casts []types.Cast `json:"Casts"`
