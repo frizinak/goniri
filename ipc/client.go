@@ -1,4 +1,4 @@
-package niri
+package ipc
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"io"
 	"net"
 
-	"github.com/frizinak/goniri/niri/types"
+	"github.com/frizinak/goniri/ipc/types"
 )
 
 type reply struct {

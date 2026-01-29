@@ -6,10 +6,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/frizinak/goniri/niri/generate"
+	"github.com/frizinak/goniri/ipc/generate"
 )
 
-const fn = "gen.actions.go"
+const fn = "gen.output-actions.go"
 
 func create() error {
 	f, err := os.Create(fn)
@@ -18,48 +18,41 @@ func create() error {
 	}
 	_, err = fmt.Fprintln(
 		f,
-		`package niri
+		`package ipc
 
-import "github.com/frizinak/goniri/niri/types"`)
-	f.Close()
-	return err
-}
-
-func simple(name string) error {
-	f, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY, 0644)
-	if err != nil {
-		return err
-	}
-	_, err = fmt.Fprintf(
-		f,
-		`
-func Action%s() Request {
-	return newSimpleAction(%#v)
-}
-`,
-		name,
-		[]byte(fmt.Sprintf("{\"Action\":{\"%s\":{}}}", name)),
-	)
+import "github.com/frizinak/goniri/ipc/types"`)
 	f.Close()
 	return err
 }
 
 func args(name string, args []string) error {
 	var t = `
-func Action{{ .Name }}(
+func OutputAction{{ .Name }}(
+	output string,
 {{- range .Fields }}
 	{{ .Value }}{{ if .Type }} {{ .Type }}{{ end }},
 {{- end }}
 ) Request {
-	return newAction(map[string]map[string]{{ .CommonType }}{
-		"{{ .Name }}": {
-			{{- range .Fields }}
-			"{{ .Key }}": {{ .Value }},
-			{{- end }}
+	return newOutputAction(
+		output,
+		map[string]map[string]{{ .CommonType }}{
+			"{{ .IPCName }}": {
+				{{- range .Fields }}
+				"{{ .Key }}": {{ .Value }},
+				{{- end }}
+			},
 		},
-	})
+	)
 }
 `
+
+	if len(args) == 0 {
+		t = `
+func OutputAction{{ .Name }}(output string) Request {
+	return newOutputAction(output, "{{ .Name }}")
+}
+`
+	}
 
 	tpl, err := template.New("main").Parse(t)
 	if err != nil {
@@ -71,13 +64,20 @@ func Action{{ .Name }}(
 	}
 
 	type global struct {
+		IPCName    string
 		Name       string
 		CommonType string
 		Fields     []field
 	}
 
+	np := strings.SplitN(name, ":", 2)
+	if len(np) == 1 {
+		np = append(np, np[0])
+	}
+
 	data := global{}
-	data.Name = name
+	data.IPCName = np[0]
+	data.Name = np[1]
 	data.CommonType = ""
 	for _, arg := range args {
 		p := strings.SplitN(arg, ":", 3)
@@ -111,13 +111,9 @@ func Action{{ .Name }}(
 
 func main() {
 	arg := os.Args[1]
-	switch {
-	case arg == "create":
+	switch arg {
+	case "create":
 		if err := create(); err != nil {
-			panic(err)
-		}
-	case len(os.Args) == 2:
-		if err := simple(arg); err != nil {
 			panic(err)
 		}
 	default:

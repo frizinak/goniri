@@ -5,7 +5,7 @@ import (
 	"html/template"
 	"os"
 
-	"github.com/frizinak/goniri/niri/generate"
+	"github.com/frizinak/goniri/ipc/generate"
 )
 
 const fn = "gen.requests.go"
@@ -17,9 +17,9 @@ func create() error {
 	}
 	_, err = fmt.Fprintln(
 		f,
-		`package niri
+		`package ipc
 
-import "github.com/frizinak/goniri/niri/types"`)
+import "github.com/frizinak/goniri/ipc/types"`)
 	f.Close()
 	return err
 }

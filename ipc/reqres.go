@@ -1,11 +1,11 @@
-package niri
+package ipc
 
 import (
 	"encoding/json"
 	"errors"
 	"time"
 
-	"github.com/frizinak/goniri/niri/types"
+	"github.com/frizinak/goniri/ipc/types"
 )
 
 //go:generate go build -o generate/bin/request ./generate/request

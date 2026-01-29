@@ -1,6 +1,6 @@
-package niri
+package ipc
 
-import "github.com/frizinak/goniri/niri/types"
+import "github.com/frizinak/goniri/ipc/types"
 
 func OutputActionOff(output string) Request {
 	return newOutputAction(output, "Off")

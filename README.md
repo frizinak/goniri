@@ -15,24 +15,24 @@ import (
 	"os"
 	"time"
 
-	"github.com/frizinak/goniri/niri"
-	"github.com/frizinak/goniri/niri/types"
+	"github.com/frizinak/goniri/ipc"
+	"github.com/frizinak/goniri/ipc/types"
 )
 
 func main() {
-	ipc := niri.New(os.Getenv("NIRI_SOCKET"))
-	if err := ipc.Connect(); err != nil {
+	c := ipc.New(os.Getenv("NIRI_SOCKET"))
+	if err := c.Connect(); err != nil {
 		panic(err)
 	}
-	defer ipc.Close()
+	defer c.Close()
 
-	req := niri.RequestFocusedWindow()
-	if err := ipc.Do(req); err != nil {
+	req := ipc.RequestFocusedWindow()
+	if err := c.Do(req); err != nil {
 		panic(err)
 	}
 	fmt.Println(req.Response())
 
-	err = ipc.Events(func(e types.Event) error {
+	err = c.Events(func(e types.Event) error {
 		fmt.Printf("ev %s %+v\n", time.Now().Format("15:04:05"), e)
 		return nil
 	})
