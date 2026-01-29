@@ -118,12 +118,12 @@ type WindowLayout struct {
 }
 
 type Workspace struct {
-	ID           uint64  `json:"id"`
-	Index        uint8   `json:"idx"`
-	Name         *string `json:"name,omitempty"`
-	Output       *string `json:"output,omitempty"`
-	Urgent       bool    `json:"is_urgent"`
-	Active       bool    `json:"is_active"`
-	Focused      bool    `json:"is_focused"`
-	ActiveWindow *uint64 `json:"active_window_id,omitempty"`
+	ID             uint64  `json:"id"`
+	Index          uint8   `json:"idx"`
+	Name           *string `json:"name,omitempty"`
+	Output         *string `json:"output,omitempty"`
+	Urgent         bool    `json:"is_urgent"`
+	Active         bool    `json:"is_active"`
+	Focused        bool    `json:"is_focused"`
+	ActiveWindowID *uint64 `json:"active_window_id,omitempty"`
 }
