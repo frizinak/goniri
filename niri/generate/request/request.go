@@ -1,46 +1,37 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"html/template"
 	"os"
 	"strings"
-	"unicode"
+
+	"github.com/frizinak/goniri/niri/generate"
 )
 
-func do(raw, prop, propType string) error {
-	var snake string
-	var ucfirst string
-	{
-		a := []rune(raw)
-		b := make([]rune, 0, len(a)+5)
-		for i, ch := range a {
-			if unicode.IsUpper(ch) {
-				if i != 0 {
-					b = append(b, '_')
-				}
-				ch = unicode.ToLower(ch)
-			}
-			b = append(b, ch)
-		}
-		c := make([]rune, len(a))
-		copy(c, a)
-		c[0] = unicode.ToUpper(c[0])
-		snake, ucfirst = string(b), string(c)
+const fn = "gen.requests.go"
+
+func create() error {
+	f, err := os.Create(fn)
+	if err != nil {
+		return err
 	}
+	_, err = fmt.Fprintln(
+		f,
+		`package niri
 
-	var t = `package niri
+import "github.com/frizinak/goniri/niri/types"`)
+	f.Close()
+	return err
+}
 
-{{ if .Import -}}
-import "github.com/frizinak/goniri/niri/types"
-
-{{ end -}}
+func add(name, prop, propType string) error {
+	var t = `
 type {{ .N }}Request struct {
 	r *{{ .N }}Response
 }
 
-func New{{ .U }}Request() {{ .N }}Request {
+func Request{{ .U }}() {{ .N }}Request {
 	return {{ .N }}Request{r: new({{ .N }}Response)}
 }
 
@@ -72,11 +63,15 @@ func (r {{ .N }}Request) Response() *{{ .N }}Response {
 		U        string
 		Prop     string
 		PropType string
-		Import   bool
-	}{raw, ucfirst, prop, propType, strings.Contains(propType, "types.")}
+	}{
+		name,
+		strings.Title(name),
+		prop,
+		generate.Type(propType),
+	}
 
 	// do not use an underscore or gen_windows.go wont compile (on non-windows)
-	f, err := os.Create(fmt.Sprintf("gen.%s.go", snake))
+	f, err := os.OpenFile(fn, os.O_APPEND|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
@@ -85,8 +80,21 @@ func (r {{ .N }}Request) Response() *{{ .N }}Response {
 }
 
 func main() {
-	flag.Parse()
-	if err := do(flag.Arg(0), flag.Arg(1), flag.Arg(2)); err != nil {
-		panic(err)
+	arg := os.Args[1]
+	switch {
+	case arg == "create":
+		if err := create(); err != nil {
+			panic(err)
+		}
+	default:
+		var prop, propType string
+		if len(os.Args) > 2 {
+			prop = os.Args[2]
+			propType = os.Args[3]
+		}
+		if err := add(arg, prop, propType); err != nil {
+			panic(err)
+		}
+
 	}
 }

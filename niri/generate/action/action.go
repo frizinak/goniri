@@ -5,6 +5,8 @@ import (
 	"html/template"
 	"os"
 	"strings"
+
+	"github.com/frizinak/goniri/niri/generate"
 )
 
 const fn = "gen.actions.go"
@@ -31,7 +33,7 @@ func simple(name string) error {
 	_, err = fmt.Fprintf(
 		f,
 		`
-func New%sRequest() Request {
+func Action%s() Request {
 	return newSimpleAction(%#v)
 }
 `,
@@ -44,7 +46,7 @@ func New%sRequest() Request {
 
 func args(name string, args []string) error {
 	var t = `
-func New{{ .Name }}Request(
+func Action{{ .Name }}(
 {{- range .Fields }}
 	{{ .Value }}{{ if .Type }} {{ .Type }}{{ end }},
 {{- end }}
@@ -87,8 +89,8 @@ func New{{ .Name }}Request(
 
 		f := field{
 			Key:   p[0],
-			Value: p[1],
-			Type:  p[2],
+			Value: generate.Dash2Camel(p[1]),
+			Type:  generate.Type(p[2]),
 		}
 		if data.CommonType == "" {
 			data.CommonType = f.Type
