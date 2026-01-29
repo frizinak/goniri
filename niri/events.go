@@ -5,7 +5,7 @@ import "time"
 type EventHandler interface {
 	Workspaces([]Workspace)
 	WorkspaceUrgency(wsid WorkspaceID, urgent bool)
-	WorkspaceFocusChange(wsid WorkspaceID, focus bool)
+	WorkspaceFocus(wsid WorkspaceID, focus bool)
 	WorkspaceActiveWindow(wsid WorkspaceID, wid WindowID)
 	Windows([]Window)
 	Window(Window)
@@ -28,7 +28,7 @@ type NoOpEventHandler struct{}
 
 func (NoOpEventHandler) Workspaces([]Workspace)                       {}
 func (NoOpEventHandler) WorkspaceUrgency(WorkspaceID, bool)           {}
-func (NoOpEventHandler) WorkspaceFocusChange(WorkspaceID, bool)       {}
+func (NoOpEventHandler) WorkspaceFocus(WorkspaceID, bool)             {}
 func (NoOpEventHandler) WorkspaceActiveWindow(WorkspaceID, WindowID)  {}
 func (NoOpEventHandler) Windows([]Window)                             {}
 func (NoOpEventHandler) Window(Window)                                {}

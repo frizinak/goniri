@@ -57,7 +57,7 @@ func (c *EventsClient) Events(ctx context.Context, h EventHandler) error {
 			)
 
 		case nil != e.WorkspaceActivated:
-			h.WorkspaceFocusChange(
+			h.WorkspaceFocus(
 				WorkspaceID(e.WorkspaceActivated.ID),
 				e.WorkspaceActivated.Focused,
 			)
