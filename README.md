@@ -1,4 +1,11 @@
-## WIP
+## Niri IPC in Go
+
+Features:
+ - [X] map all IPC calls
+ - [ ] convenient high-level API
+ - [ ] example implementations
+
+## Example
 
 ```go
 package main
@@ -14,14 +21,13 @@ import (
 
 func main() {
 	ipc := niri.New(os.Getenv("NIRI_SOCKET"))
-	if err := ipc.Init(); err != nil {
+	if err := ipc.Connect(); err != nil {
 		panic(err)
 	}
 	defer ipc.Close()
 
-	req := niri.NewFocusedWindowRequest()
-	err := ipc.Do(req)
-	if err != nil {
+	req := niri.RequestFocusedWindow()
+	if err := ipc.Do(req); err != nil {
 		panic(err)
 	}
 	fmt.Println(req.Response())
@@ -36,3 +42,4 @@ func main() {
 }
 
 ```
+
