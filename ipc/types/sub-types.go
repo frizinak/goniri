@@ -153,7 +153,7 @@ func (c *RGB) UnmarshalJSON(data []byte) error {
 // ----------------------------------------------------------------------
 
 type WorkspacesChanged struct {
-	Workspaces []Workspace `json:"workspace"`
+	Workspaces []Workspace `json:"workspaces"`
 }
 
 type WorkspaceUrgencyChanged struct {
