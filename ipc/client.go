@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net"
 
 	"github.com/frizinak/goniri/ipc/types"
 )
@@ -28,33 +27,25 @@ type Request interface {
 type EventHandler func(types.Event) error
 
 type Client interface {
-	Connect() error
 	Do(Request) error
 	Events(EventHandler) error
-	io.Closer
 }
 
 type ipc struct {
-	socket string
-
-	conn io.Closer
+	conn io.ReadWriter
 	w    *json.Encoder
 	r    *json.Decoder
 }
 
-func New(socket string) Client {
-	return &ipc{socket: socket}
+func New(socket io.ReadWriter) Client {
+	c := &ipc{conn: socket}
+	c.w = json.NewEncoder(socket)
+	c.r = json.NewDecoder(socket)
+
+	return c
 }
 
 func (ipc *ipc) Connect() error {
-	conn, err := net.Dial("unix", ipc.socket)
-	if err != nil {
-		return err
-	}
-	ipc.conn = conn
-
-	ipc.w = json.NewEncoder(conn)
-	ipc.r = json.NewDecoder(conn)
 
 	return nil
 }
@@ -98,5 +89,3 @@ func (ipc *ipc) Events(cb EventHandler) error {
 		}
 	}
 }
-
-func (ipc *ipc) Close() error { return ipc.conn.Close() }

@@ -20,12 +20,13 @@ import (
 )
 
 func main() {
-	c := ipc.New(os.Getenv("NIRI_SOCKET"))
-	if err := c.Connect(); err != nil {
+	conn, err := net.Dial("unix", os.Getenv("NIRI_SOCKET"))
+	if err != nil {
 		panic(err)
 	}
-	defer c.Close()
+	defer conn.Close()
 
+	c := ipc.New(conn)
 	req := ipc.RequestFocusedWindow()
 	if err := c.Do(req); err != nil {
 		panic(err)
