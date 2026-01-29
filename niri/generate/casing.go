@@ -14,9 +14,15 @@ func Dash2Camel(i string) string {
 		return r == '-' || r == '_'
 	})
 	for i := 1; i < len(p); i++ {
-		p[i] = strings.Title(strings.ToLower(p[i]))
+		p[i] = UCFirst(strings.ToLower(p[i]))
 	}
 	return strings.Join(p, "")
+}
+
+func UCFirst(i string) string {
+	n := []rune(i)
+	n[0] = unicode.ToUpper(n[0])
+	return string(n)
 }
 
 func camel2(i string, char rune) string {

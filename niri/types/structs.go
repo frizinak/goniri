@@ -46,6 +46,24 @@ type Mode struct {
 	Preferred bool   `json:"is_preferred"`
 }
 
+func (m Mode) ConfiguredMode() ConfiguredMode {
+	var r *float64
+	if m.Refresh != 0 {
+		n := float64(m.Refresh) / 1000
+		r = &n
+	}
+
+	return ConfiguredMode{
+		Width:   m.Width,
+		Height:  m.Height,
+		Refresh: r,
+	}
+}
+
+func (m Mode) ModeToSet() ModeToSet {
+	return NewModeToSet(m.ConfiguredMode())
+}
+
 type Output struct {
 	Name         string         `json:"name"`
 	Make         string         `json:"make"`

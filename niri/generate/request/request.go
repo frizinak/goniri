@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"html/template"
 	"os"
-	"strings"
 
 	"github.com/frizinak/goniri/niri/generate"
 )
@@ -65,7 +64,7 @@ func (r {{ .N }}Request) Response() *{{ .N }}Response {
 		PropType string
 	}{
 		name,
-		strings.Title(name),
+		generate.UCFirst(name),
 		prop,
 		generate.Type(propType),
 	}
@@ -81,8 +80,8 @@ func (r {{ .N }}Request) Response() *{{ .N }}Response {
 
 func main() {
 	arg := os.Args[1]
-	switch {
-	case arg == "create":
+	switch arg {
+	case "create":
 		if err := create(); err != nil {
 			panic(err)
 		}

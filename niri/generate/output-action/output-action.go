@@ -36,7 +36,7 @@ func OutputAction{{ .Name }}(
 	return newOutputAction(
 		output,
 		map[string]map[string]{{ .CommonType }}{
-			"{{ .Name }}": {
+			"{{ .IPCName }}": {
 				{{- range .Fields }}
 				"{{ .Key }}": {{ .Value }},
 				{{- end }}
@@ -64,13 +64,20 @@ func OutputAction{{ .Name }}(output string) Request {
 	}
 
 	type global struct {
+		IPCName    string
 		Name       string
 		CommonType string
 		Fields     []field
 	}
 
+	np := strings.SplitN(name, ":", 2)
+	if len(np) == 1 {
+		np = append(np, np[0])
+	}
+
 	data := global{}
-	data.Name = name
+	data.IPCName = np[0]
+	data.Name = np[1]
 	data.CommonType = ""
 	for _, arg := range args {
 		p := strings.SplitN(arg, ":", 3)
@@ -104,8 +111,8 @@ func OutputAction{{ .Name }}(output string) Request {
 
 func main() {
 	arg := os.Args[1]
-	switch {
-	case arg == "create":
+	switch arg {
+	case "create":
 		if err := create(); err != nil {
 			panic(err)
 		}

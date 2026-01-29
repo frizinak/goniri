@@ -2,12 +2,14 @@ package niri
 
 import (
 	"encoding/json"
+	"errors"
 	"time"
 
 	"github.com/frizinak/goniri/niri/types"
 )
 
-//go:generate go build -o generate/bin/request generate/request.go
+//go:generate go build -o generate/bin/request ./generate/request
+//go:generate ./generate/bin/request create
 
 type eventStreamResponse string
 
@@ -15,7 +17,7 @@ type eventStreamRequest struct {
 	r *eventStreamResponse
 }
 
-func newEventStreamRequest() eventStreamRequest {
+func newEventStream() eventStreamRequest {
 	return eventStreamRequest{r: new(eventStreamResponse)}
 }
 
@@ -75,8 +77,26 @@ type pickColorResponse struct {
 	PickedColor *types.PickedColor `json:"PickedColor"`
 }
 
+type OutputMissingError struct{}
+
+func (o OutputMissingError) Error() string {
+	return string(types.OutputWasMissing)
+}
+
 type outputConfigChangedResponse struct {
 	OutputConfigChanged types.OutputConfigChanged `json:"OutputConfigChanged"`
+}
+
+func (o outputConfigChangedResponse) Err() (err error) {
+	if o.OutputConfigChanged == types.OutputWasMissing {
+		err = OutputMissingError{}
+		return
+	}
+	if o.OutputConfigChanged != types.OutputChangeApplied {
+		err = errors.New(string(o.OutputConfigChanged))
+	}
+
+	return
 }
 
 //go:generate ./generate/bin/request overviewState OverviewState *types.Overview
@@ -85,8 +105,10 @@ type overviewStateResponse struct {
 	types.OverviewOpenedOrClosed
 }
 
+//go:generate ./generate/bin/request casts Casts []types.Cast
+
 // Documented, but doens't work.
-// -go:generate ./generate/bin/request casts Casts []types.Cast
+// TODO
 type castsResponse struct {
 	Casts []types.Cast `json:"Casts"`
 }
@@ -109,11 +131,11 @@ func (a simpleAction) response() Response { return new(string) }
 
 type action struct {
 	j struct {
-		Action interface{} `json:"Action"`
+		Action any `json:"Action"`
 	}
 }
 
-func newAction(i interface{}) action {
+func newAction(i any) action {
 	var a action
 	a.j.Action = i
 	return a
@@ -125,9 +147,9 @@ func (a action) MarshalJSON() ([]byte, error) {
 
 func (a action) response() Response { return new(string) }
 
-//go:generate go build -o generate/bin/action generate/action.go
-
+//go:generate go build -o generate/bin/action ./generate/action
 //go:generate ./generate/bin/action create
+
 //go:generate ./generate/bin/action PowerOffMonitors
 //go:generate ./generate/bin/action PowerOnMonitors
 //go:generate ./generate/bin/action ToggleKeyboardShortcutsInhibit
@@ -221,7 +243,7 @@ func (a action) response() Response { return new(string) }
 //go:generate ./generate/bin/action Spawn command:[]string
 //go:generate ./generate/bin/action SpawnSh command:string
 
-func NewDoScreenTransitionRequest(delay *time.Duration) Request {
+func ActionDoScreenTransition(delay *time.Duration) Request {
 	if delay == nil {
 		return newSimpleAction([]byte(`{"Action":{"DoScreenTransition":{}}}`))
 	}
@@ -231,52 +253,89 @@ func NewDoScreenTransitionRequest(delay *time.Duration) Request {
 	})
 }
 
-//go:generate ./generate/bin/action Screenshot show_pointer:showPointer:bool path:*string
+//go:generate ./generate/bin/action Screenshot show_pointer:bool path:*string
 //go:generate ./generate/bin/action ScreenshotScreen write_to_disk:write:bool show_pointer:showPointer:bool path:*string
-//go:generate ./generate/bin/action ScreenshotWindow id:*uint64 write_to_disk:write:bool show_pointer:showPointer:bool path:*string
-//go:generate ./generate/bin/action CloseWindow id:*uint64
-//go:generate ./generate/bin/action FullscreenWindow id:*uint64
-//go:generate ./generate/bin/action ToggleWindowedFullscreen id:*uint64
-//go:generate ./generate/bin/action FocusWindow id:uint64
-//go:generate ./generate/bin/action FocusWindowInColumn index:uint8
-//go:generate ./generate/bin/action FocusColumn index:uint
-//go:generate ./generate/bin/action MoveColumnToIndex index:uint
-//go:generate ./generate/bin/action ConsumeOrExpelWindowLeft id:*uint64
-//go:generate ./generate/bin/action ConsumeOrExpelWindowRight id:*uint64
+//go:generate ./generate/bin/action ScreenshotWindow id:*u64 write_to_disk:write:bool show_pointer:showPointer:bool path:*string
+//go:generate ./generate/bin/action CloseWindow id:*u64
+//go:generate ./generate/bin/action FullscreenWindow id:*u64
+//go:generate ./generate/bin/action ToggleWindowedFullscreen id:*u64
+//go:generate ./generate/bin/action FocusWindow id:u64
+//go:generate ./generate/bin/action FocusWindowInColumn index:u8
+//go:generate ./generate/bin/action FocusColumn index:usize
+//go:generate ./generate/bin/action MoveColumnToIndex index:usize
+//go:generate ./generate/bin/action ConsumeOrExpelWindowLeft id:*u64
+//go:generate ./generate/bin/action ConsumeOrExpelWindowRight id:*u64
 //go:generate ./generate/bin/action SetColumnDisplay display:types.ColumnDisplay
-//go:generate ./generate/bin/action CenterWindow id:*uint64
+//go:generate ./generate/bin/action CenterWindow id:*u64
 //go:generate ./generate/bin/action FocusWorkspace reference:workspaceRef:types.WorkspaceRef
 //go:generate ./generate/bin/action MoveWindowToWorkspaceDown focus:bool
 //go:generate ./generate/bin/action MoveWindowToWorkspaceUp focus:bool
-//go:generate ./generate/bin/action MoveWindowToWorkspace id:*uint64 reference:workspaceRef:types.WorkspaceRef focus:bool
+//go:generate ./generate/bin/action MoveWindowToWorkspace id:*u64 reference:workspaceRef:types.WorkspaceRef focus:bool
 //go:generate ./generate/bin/action MoveColumnToWorkspaceDown focus:bool
 //go:generate ./generate/bin/action MoveColumnToWorkspaceUp focus:bool
 //go:generate ./generate/bin/action MoveColumnToWorkspace reference:workspaceRef:types.WorkspaceRef focus:bool
-//go:generate ./generate/bin/action MoveWorkspaceToIndex index:uint reference:workspaceRef:types.WorkspaceRef
+//go:generate ./generate/bin/action MoveWorkspaceToIndex index:usize reference:workspaceRef:types.WorkspaceRef
 //go:generate ./generate/bin/action SetWorkspaceName name:string workspace:workspaceRef:*types.WorkspaceRef
 //go:generate ./generate/bin/action UnsetWorkspaceName reference:workspaceRef:*types.WorkspaceRef
 //go:generate ./generate/bin/action FocusMonitor output:string
-//go:generate ./generate/bin/action MoveWindowToMonitor id:*uint64 output:string
+//go:generate ./generate/bin/action MoveWindowToMonitor id:*u64 output:string
 //go:generate ./generate/bin/action MoveColumnToMonitor output:string
-//go:generate ./generate/bin/action SetWindowWidth id:*uint64 change:types.SizeChange
-//go:generate ./generate/bin/action SetWindowHeight id:*uint64 change:types.SizeChange
-//go:generate ./generate/bin/action ResetWindowHeight id:*uint64
-//go:generate ./generate/bin/action SwitchPresetWindowWidth id:*uint64
-//go:generate ./generate/bin/action SwitchPresetWindowWidthBack id:*uint64
-//go:generate ./generate/bin/action SwitchPresetWindowHeight id:*uint64
-//go:generate ./generate/bin/action SwitchPresetWindowHeightBack id:*uint64
-//go:generate ./generate/bin/action MaximizeWindowToEdges id:*uint64
+//go:generate ./generate/bin/action SetWindowWidth id:*u64 change:types.SizeChange
+//go:generate ./generate/bin/action SetWindowHeight id:*u64 change:types.SizeChange
+//go:generate ./generate/bin/action ResetWindowHeight id:*u64
+//go:generate ./generate/bin/action SwitchPresetWindowWidth id:*u64
+//go:generate ./generate/bin/action SwitchPresetWindowWidthBack id:*u64
+//go:generate ./generate/bin/action SwitchPresetWindowHeight id:*u64
+//go:generate ./generate/bin/action SwitchPresetWindowHeightBack id:*u64
+//go:generate ./generate/bin/action MaximizeWindowToEdges id:*u64
 //go:generate ./generate/bin/action SetColumnWidth change:types.SizeChange
 //go:generate ./generate/bin/action SwitchLayout layout:types.LayoutSwitchTarget
 //go:generate ./generate/bin/action MoveWorkspaceToMonitor output:string reference:workspaceRef:*types.WorkspaceRef
-//go:generate ./generate/bin/action ToggleWindowFloating id:*uint64
-//go:generate ./generate/bin/action MoveWindowToFloating id:*uint64
-//go:generate ./generate/bin/action MoveWindowToTiling id:*uint64
-//go:generate ./generate/bin/action MoveFloatingWindow id:*uint64 x: y:types.PositionChange
-//go:generate ./generate/bin/action ToggleWindowRuleOpacity id:*uint64
-//go:generate ./generate/bin/action SetDynamicCastWindow id:*uint64
+//go:generate ./generate/bin/action ToggleWindowFloating id:*u64
+//go:generate ./generate/bin/action MoveWindowToFloating id:*u64
+//go:generate ./generate/bin/action MoveWindowToTiling id:*u64
+//go:generate ./generate/bin/action MoveFloatingWindow id:*u64 x: y:types.PositionChange
+//go:generate ./generate/bin/action ToggleWindowRuleOpacity id:*u64
+//go:generate ./generate/bin/action SetDynamicCastWindow id:*u64
 //go:generate ./generate/bin/action SetDynamicCastMonitor output:*string
-//go:generate ./generate/bin/action StopCast session_id:sessionID:uint64
-//go:generate ./generate/bin/action ToggleWindowUrgent id:uint64
-//go:generate ./generate/bin/action SetWindowUrgent id:uint64
-//go:generate ./generate/bin/action UnsetWindowUrgent id:uint64
+//go:generate ./generate/bin/action StopCast session_id:sessionID:u64
+//go:generate ./generate/bin/action ToggleWindowUrgent id:u64
+//go:generate ./generate/bin/action SetWindowUrgent id:u64
+//go:generate ./generate/bin/action UnsetWindowUrgent id:u64
+
+type outputAction struct {
+	r *outputConfigChangedResponse
+	j struct {
+		Output struct {
+			Output string `json:"output"`
+			Action any    `json:"action"`
+		} `json:"Output"`
+	}
+}
+
+func newOutputAction(o string, i any) outputAction {
+	var a outputAction
+	a.r = new(outputConfigChangedResponse)
+	a.j.Output.Output = o
+	a.j.Output.Action = i
+	return a
+}
+
+func (a outputAction) MarshalJSON() ([]byte, error) {
+	return json.Marshal(a.j)
+}
+
+func (a outputAction) response() Response { return a.r }
+
+//go:generate go build -o generate/bin/output-action ./generate/output-action
+//go:generate ./generate/bin/output-action create
+
+//go:generate ./generate/bin/output-action Off
+//go:generate ./generate/bin/output-action On
+//go:generate ./generate/bin/output-action Mode mode:types.ModeToSet
+//go:generate ./generate/bin/output-action CustomMode mode:types.ConfiguredMode
+//go:generate ./generate/bin/output-action Modeline clock:f64 hdisplay:u16 hsync_start:u16 hsync_end:u16 htotal:u16 vdisplay:u16 vsync_start:u16 vsync_end:u16 vtotal:u16 hsync_polarity:types.HSyncPolarity vsync_polarity:types.VSyncPolarity
+//go:generate ./generate/bin/output-action Scale scale:types.ScaleToSet
+//go:generate ./generate/bin/output-action Transform transform:types.Transform
+//go:generate ./generate/bin/output-action Position position:types.PositionToSet
+//go:generate ./generate/bin/output-action Vrr:VRR vrr:types.VRRToSet

@@ -164,6 +164,30 @@ type ModeToSet struct {
 	ConfiguredMode
 }
 
+func NewModeToSetAutomatic() ModeToSet {
+	return ModeToSet{Kind: ModeToSetAutomatic}
+}
+
+func NewModeToSet(m ConfiguredMode) ModeToSet {
+	return ModeToSet{Kind: ModeToSetSpecific, ConfiguredMode: m}
+}
+
+func (m ModeToSet) MarshalJSON() ([]byte, error) {
+	switch m.Kind {
+	case ModeToSetAutomatic:
+		return json.Marshal(m.Kind)
+	case ModeToSetSpecific:
+		return json.Marshal(map[ModeToSetKind]ConfiguredMode{
+			m.Kind: m.ConfiguredMode,
+		})
+	}
+
+	return nil, fmt.Errorf(
+		"invalid ModeToSet kind: '%s'",
+		m.Kind,
+	)
+}
+
 func (m *ModeToSet) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err == nil {
@@ -190,8 +214,8 @@ func (m *ModeToSet) UnmarshalJSON(data []byte) error {
 type OutputConfigChanged string
 
 const (
-	OutputConfigChangedApplied          OutputConfigChanged = "Applied"
-	OutputConfigChangedOutputWasMissing OutputConfigChanged = "OutputWasMissing"
+	OutputChangeApplied OutputConfigChanged = "Applied"
+	OutputWasMissing    OutputConfigChanged = "OutputWasMissing"
 )
 
 type PositionChange struct {
@@ -239,6 +263,33 @@ type PositionToSet struct {
 	ConfiguredPosition
 }
 
+func NewPositionAutomatic() PositionToSet {
+	return PositionToSet{Kind: PositionToSetAutomatic}
+}
+
+func NewPosition(pos ConfiguredPosition) PositionToSet {
+	return PositionToSet{
+		Kind:               PositionToSetSpecific,
+		ConfiguredPosition: pos,
+	}
+}
+
+func (p PositionToSet) MarshalJSON() ([]byte, error) {
+	switch p.Kind {
+	case PositionToSetAutomatic:
+		return json.Marshal(p.Kind)
+	case PositionToSetSpecific:
+		return json.Marshal(map[PositionToSetKind]ConfiguredPosition{
+			p.Kind: p.ConfiguredPosition,
+		})
+	}
+
+	return nil, fmt.Errorf(
+		"invalid PositionToSet kind: '%s'",
+		p.Kind,
+	)
+}
+
 func (p *PositionToSet) UnmarshalJSON(data []byte) error {
 	var s string
 	if err := json.Unmarshal(data, &s); err == nil {
@@ -267,10 +318,34 @@ type ScaleToSet struct {
 	Scale float64
 }
 
-func (p *ScaleToSet) UnmarshalJSON(data []byte) error {
-	var s string
-	if err := json.Unmarshal(data, &s); err == nil {
-		p.Kind = ScaleToSetKind(s)
+func NewScaleToSetAutomatic() ScaleToSet {
+	return ScaleToSet{Kind: ScaleToSetAutomatic}
+}
+
+func NewScaleToSet(scale float64) ScaleToSet {
+	return ScaleToSet{Kind: ScaleToSetSpecific, Scale: scale}
+}
+
+func (s ScaleToSet) MarshalJSON() ([]byte, error) {
+	switch s.Kind {
+	case ScaleToSetAutomatic:
+		return json.Marshal(s.Kind)
+	case ScaleToSetSpecific:
+		return json.Marshal(map[ScaleToSetKind]float64{
+			s.Kind: s.Scale,
+		})
+	}
+
+	return nil, fmt.Errorf(
+		"invalid ScaleToSet kind: '%s'",
+		s.Kind,
+	)
+}
+
+func (s *ScaleToSet) UnmarshalJSON(data []byte) error {
+	var str string
+	if err := json.Unmarshal(data, &str); err == nil {
+		s.Kind = ScaleToSetKind(str)
 		return nil
 	}
 
@@ -281,8 +356,8 @@ func (p *ScaleToSet) UnmarshalJSON(data []byte) error {
 
 	for k, v := range o {
 		if k == string(ScaleToSetSpecific) {
-			p.Kind = ScaleToSetSpecific
-			p.Scale = v
+			s.Kind = ScaleToSetSpecific
+			s.Scale = v
 			break
 		}
 	}
@@ -360,9 +435,9 @@ type Transform string
 
 const (
 	TransformNormal     Transform = "Normal"
-	Transform90         Transform = "_90"
-	Transform180        Transform = "_180"
-	Transform270        Transform = "_270"
+	Transform90         Transform = "90"
+	Transform180        Transform = "180"
+	Transform270        Transform = "270"
 	TransformFlipped    Transform = "Flipped"
 	TransformFlipped90  Transform = "Flipped90"
 	TransformFlipped180 Transform = "Flipped180"

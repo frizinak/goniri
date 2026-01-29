@@ -16,6 +16,9 @@ type reply struct {
 }
 
 type Response interface{}
+type ResponseWithError interface {
+	Err() error
+}
 
 type Request interface {
 	json.Marshaler
@@ -64,18 +67,24 @@ func (ipc *ipc) Do(req Request) error {
 	var r reply
 	r.Ok = req.response()
 	if err := ipc.r.Decode(&r); err != nil {
-		return fmt.Errorf("niri response json error: %w", err)
+		return fmt.Errorf("niri json error: %w", err)
 	}
 
 	if r.Err != "" {
-		return fmt.Errorf("niri replied with error: %w", errors.New(r.Err))
+		return fmt.Errorf("niri error: %w", errors.New(r.Err))
+	}
+
+	if we, ok := r.Ok.(ResponseWithError); ok {
+		if err := we.Err(); err != nil {
+			return fmt.Errorf("niri error: %w", err)
+		}
 	}
 
 	return nil
 }
 
 func (ipc *ipc) Events(cb EventHandler) error {
-	if err := ipc.Do(newEventStreamRequest()); err != nil {
+	if err := ipc.Do(newEventStream()); err != nil {
 		return err
 	}
 
